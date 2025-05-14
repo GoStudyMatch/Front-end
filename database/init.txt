@@ -1,0 +1,135 @@
+-- 데이터베이스 생성
+CREATE DATABASE IF NOT EXISTS study_partner;
+USE study_partner;
+
+-- 사용자 테이블
+CREATE TABLE IF NOT EXISTS users (
+    user_id VARCHAR(36) PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL,
+    name VARCHAR(100) NOT NULL,
+    profile_image_url VARCHAR(255),
+    education VARCHAR(100),
+    location VARCHAR(100),
+    occupation VARCHAR(100),
+    bio TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 스터디 테이블
+CREATE TABLE IF NOT EXISTS studies (
+    study_id VARCHAR(36) PRIMARY KEY,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    schedule VARCHAR(100),
+    max_members INT NOT NULL,
+    current_members INT DEFAULT 1,
+    location VARCHAR(100),
+    image_url VARCHAR(255),
+    created_by VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (created_by) REFERENCES users(user_id)
+);
+
+-- 스터디 멤버 테이블
+CREATE TABLE IF NOT EXISTS study_members (
+    study_id VARCHAR(36),
+    user_id VARCHAR(36),
+    role ENUM('leader', 'member') DEFAULT 'member',
+    joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (study_id, user_id),
+    FOREIGN KEY (study_id) REFERENCES studies(study_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- 관심 스터디 테이블
+CREATE TABLE IF NOT EXISTS favorite_studies (
+    study_id VARCHAR(36),
+    user_id VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (study_id, user_id),
+    FOREIGN KEY (study_id) REFERENCES studies(study_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- 스킬 테이블
+CREATE TABLE IF NOT EXISTS skills (
+    skill_id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE
+);
+
+-- 사용자 스킬 테이블
+CREATE TABLE IF NOT EXISTS user_skills (
+    user_id VARCHAR(36),
+    skill_id VARCHAR(36),
+    PRIMARY KEY (user_id, skill_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id),
+    FOREIGN KEY (skill_id) REFERENCES skills(skill_id)
+);
+
+-- 채팅방 테이블
+CREATE TABLE IF NOT EXISTS chat_rooms (
+    room_id VARCHAR(36) PRIMARY KEY,
+    study_id VARCHAR(36),
+    name VARCHAR(100),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (study_id) REFERENCES studies(study_id)
+);
+
+-- 채팅 메시지 테이블
+CREATE TABLE IF NOT EXISTS chat_messages (
+    message_id VARCHAR(36) PRIMARY KEY,
+    room_id VARCHAR(36),
+    user_id VARCHAR(36),
+    content TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (room_id) REFERENCES chat_rooms(room_id),
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- 알림 테이블
+CREATE TABLE IF NOT EXISTS notifications (
+    notification_id VARCHAR(36) PRIMARY KEY,
+    user_id VARCHAR(36),
+    type ENUM('study_invite', 'message', 'system') NOT NULL,
+    content TEXT NOT NULL,
+    is_read BOOLEAN DEFAULT FALSE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(user_id)
+);
+
+-- 팔로우 테이블
+CREATE TABLE IF NOT EXISTS follows (
+    follower_id VARCHAR(36),
+    following_id VARCHAR(36),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (follower_id, following_id),
+    FOREIGN KEY (follower_id) REFERENCES users(user_id),
+    FOREIGN KEY (following_id) REFERENCES users(user_id)
+);
+
+-- 초기 데이터 삽입
+-- 스킬 데이터
+INSERT INTO skills (skill_id, name) VALUES
+(UUID(), 'Flutter'),
+(UUID(), 'Dart'),
+(UUID(), 'React'),
+(UUID(), 'JavaScript'),
+(UUID(), 'Python'),
+(UUID(), 'Java'),
+(UUID(), 'Spring'),
+(UUID(), 'MySQL'),
+(UUID(), 'MongoDB'),
+(UUID(), 'AWS');
+
+-- 테스트 사용자 데이터
+INSERT INTO users (user_id, email, password, name, education, location, occupation, bio) VALUES
+(UUID(), 'test1@example.com', 'password123', '김철수', '대학교 재학중', '서울시 강남구', '학생', '안녕하세요! 웹 개발에 관심이 있는 학생입니다.'),
+(UUID(), 'test2@example.com', 'password123', '이영희', '대학교 졸업', '서울시 서초구', '취준생', '모바일 앱 개발을 공부하고 있습니다.');
+
+-- 테스트 스터디 데이터
+INSERT INTO studies (study_id, title, description, schedule, max_members, location, created_by) VALUES
+(UUID(), 'Flutter 스터디', 'Flutter와 Dart를 함께 공부하는 스터디입니다.', '매주 월, 수, 금', 6, '서울시 강남구', (SELECT user_id FROM users WHERE email = 'test1@example.com')),
+(UUID(), 'React 스터디', 'React와 JavaScript를 함께 공부하는 스터디입니다.', '매주 화, 목', 4, '서울시 서초구', (SELECT user_id FROM users WHERE email = 'test2@example.com')); 

@@ -15,6 +15,9 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
+  final TextEditingController _skillController = TextEditingController();
+  List<String> skills = [];
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -111,13 +114,51 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildSection(
               '보유 기술',
               [
-                _buildSkillChips([
-                  'Flutter',
-                  'Dart',
-                  'React',
-                  'JavaScript',
-                  'Python',
-                ]),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Column(
+                    children: [
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: _skillController,
+                              decoration: const InputDecoration(
+                                hintText: '스킬을 입력하세요',
+                                border: OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          ElevatedButton(
+                            onPressed: () {
+                              if (_skillController.text.isNotEmpty) {
+                                setState(() {
+                                  skills.add(_skillController.text);
+                                  _skillController.clear();
+                                });
+                              }
+                            },
+                            child: const Text('추가'),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 16),
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: skills.map((skill) => Chip(
+                          label: Text(skill),
+                          onDeleted: () {
+                            setState(() {
+                              skills.remove(skill);
+                            });
+                          },
+                        )).toList(),
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
             // 자기소개 섹션
@@ -201,6 +242,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  @override
+  void dispose() {
+    _skillController.dispose();
+    super.dispose();
+  }
+
   Widget _buildSection(String title, List<Widget> children) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -257,23 +304,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
       child: Wrap(
         spacing: 8,
         runSpacing: 8,
-        children: skills.map((skill) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.orange.withOpacity(0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.orange.withOpacity(0.3)),
-            ),
-            child: Text(
-              skill,
-              style: const TextStyle(
-                color: Colors.orange,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          );
-        }).toList(),
+        children: skills.map((skill) => Chip(
+          label: Text(skill),
+          onDeleted: () {
+            setState(() {
+              skills.remove(skill);
+            });
+          },
+        )).toList(),
       ),
     );
   }
