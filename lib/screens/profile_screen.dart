@@ -25,9 +25,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
         title: const Text('프로필'),
         actions: [
           IconButton(
-            icon: const Icon(Icons.edit),
+            icon: const Icon(Icons.settings),
             onPressed: () {
-              // TODO: 프로필 수정 화면으로 이동
+              context.push('/profile/edit');
             },
           ),
         ],
@@ -90,11 +90,37 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      _buildStatItem('스터디', '0'),
-                      _buildDivider(),
-                      _buildStatItem('팔로워', '0'),
-                      _buildDivider(),
-                      _buildStatItem('팔로잉', '0'),
+                      Expanded(
+                        child: _buildStatItem('스터디', '3'),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            context.push('/follow?tab=followers');
+                          },
+                          child: _buildStatItem('팔로워', '1.3K'),
+                        ),
+                      ),
+                      Container(
+                        width: 1,
+                        height: 40,
+                        color: Colors.grey[300],
+                        margin: const EdgeInsets.symmetric(vertical: 4),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            context.push('/follow?tab=following');
+                          },
+                          child: _buildStatItem('팔로잉', '13'),
+                        ),
+                      ),
                     ],
                   ),
                 ],
@@ -186,15 +212,77 @@ class _ProfileScreenState extends State<ProfileScreen> {
               '알림 설정',
               Icons.notifications,
               () {
-                // TODO: 알림 설정 화면으로 이동
+                context.push('/notifications/settings');
               },
             ),
             _buildMenuItem(
               context,
-              '계정 설정',
-              Icons.settings,
+              '학습 목표',
+              Icons.check_circle_outline,
               () {
-                // TODO: 계정 설정 화면으로 이동
+                context.push('/todo');
+              },
+            ),
+            _buildMenuItem(
+              context,
+              '지도',
+              Icons.map_outlined,
+              () {
+                context.push('/map');
+              },
+            ),
+            _buildMenuItem(
+              context,
+              '도움말',
+              Icons.help_outline,
+              () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('도움말'),
+                    content: const Text(
+                      '스터디 파트너 앱 사용 방법에 대한 도움말이 준비 중입니다.',
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('확인'),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+            _buildMenuItem(
+              context,
+              '앱 정보',
+              Icons.info_outline,
+              () {
+                showDialog(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('앱 정보'),
+                    content: const Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('버전: 1.0.0'),
+                        SizedBox(height: 8),
+                        Text('개발자: 스터디 파트너 팀'),
+                      ],
+                    ),
+                    actions: [
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: const Text('확인'),
+                      ),
+                    ],
+                  ),
+                );
               },
             ),
             _buildMenuItem(
@@ -317,34 +405,24 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   Widget _buildStatItem(String label, String value) {
-    return Expanded(
-      child: Column(
-        children: [
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
+    return Column(
+      children: [
+        Text(
+          value,
+          style: const TextStyle(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 4),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey[600],
-            ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 14,
+            color: Colors.grey[600],
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDivider() {
-    return Container(
-      height: 24,
-      width: 1,
-      color: Colors.grey[300],
+        ),
+      ],
     );
   }
 

@@ -1,28 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'package:go_router/go_router.dart';
 
-class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({super.key});
+class UserInfoScreen extends StatefulWidget {
+  const UserInfoScreen({super.key});
 
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  State<UserInfoScreen> createState() => _UserInfoScreenState();
 }
 
-class _RegisterScreenState extends State<RegisterScreen> {
+class _UserInfoScreenState extends State<UserInfoScreen> {
   final _formKey = GlobalKey<FormState>();
   final _nicknameController = TextEditingController();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
-  final _confirmPasswordController = TextEditingController();
   DateTime? _birthDate;
   String? _selectedEducation;
   String? _selectedStatus;
   String? _selectedJobType;
   bool _isStudent = true;
-  bool _isEmailChecking = false;
-  bool _isEmailAvailable = false;
 
   final List<String> _educationLevels = [
     '중고등학교',
@@ -53,33 +47,13 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nicknameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
-    _confirmPasswordController.dispose();
     super.dispose();
-  }
-
-  Future<void> _checkEmailAvailability(String email) async {
-    if (email.isEmpty || !email.contains('@')) return;
-    setState(() {
-      _isEmailChecking = true;
-    });
-    await Future.delayed(const Duration(seconds: 1));
-    // 임시: test가 포함된 이메일은 중복으로 처리
-    final isAvailable = !email.contains('test');
-    setState(() {
-      _isEmailAvailable = isAvailable;
-      _isEmailChecking = false;
-    });
-    if (!isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이미 사용 중인 이메일입니다.')),
-      );
-    }
   }
 
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
+      initialDate: DateTime.now(),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
@@ -90,29 +64,19 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _handleKakaoRegister() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('카카오 회원가입 기능은 준비 중입니다.')),
-    );
-  }
-
   void _handleSubmit() {
     if (_formKey.currentState!.validate()) {
-      if (!_isEmailAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('이메일 중복 확인이 필요합니다.')),
-        );
-        return;
-      }
-      // TODO: 실제 회원가입 처리
-      context.go('/home');
+      // TODO: 사용자 정보 저장 로직 구현
+      Navigator.pushReplacementNamed(context, '/home');
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('회원가입')),
+      appBar: AppBar(
+        title: const Text('사용자 정보 입력'),
+      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Form(
@@ -151,39 +115,16 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 16),
               TextFormField(
                 controller: _emailController,
-                decoration: InputDecoration(
+                decoration: const InputDecoration(
                   labelText: '이메일',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: _isEmailChecking
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : IconButton(
-                          icon: Icon(
-                            _isEmailAvailable
-                                ? Icons.check_circle
-                                : Icons.check_circle_outline,
-                            color: _isEmailAvailable ? Colors.green : Colors.grey,
-                          ),
-                          onPressed: () => _checkEmailAvailability(_emailController.text),
-                        ),
+                  border: OutlineInputBorder(),
                 ),
-                onChanged: (value) {
-                  setState(() {
-                    _isEmailAvailable = false;
-                  });
-                },
                 validator: (value) {
                   if (value == null || value.isEmpty) {
                     return '이메일을 입력해주세요';
                   }
                   if (!value.contains('@')) {
                     return '올바른 이메일 형식이 아닙니다';
-                  }
-                  if (!_isEmailAvailable) {
-                    return '이메일 중복 확인이 필요합니다';
                   }
                   return null;
                 },
@@ -202,24 +143,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   }
                   if (value.length < 6) {
                     return '비밀번호는 6자 이상이어야 합니다';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: const InputDecoration(
-                  labelText: '비밀번호 확인',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '비밀번호를 다시 입력해주세요';
-                  }
-                  if (value != _passwordController.text) {
-                    return '비밀번호가 일치하지 않습니다';
                   }
                   return null;
                 },
@@ -311,16 +234,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(vertical: 16),
                 ),
-                child: const Text('회원가입'),
-              ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: _handleKakaoRegister,
-                icon: const Icon(Icons.chat_bubble_outline, color: Colors.yellow),
-                label: const Text('카카오로 회원가입'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
+                child: const Text('저장하기'),
               ),
             ],
           ),
