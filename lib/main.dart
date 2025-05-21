@@ -1,3 +1,8 @@
+/// 스터디 파트너 앱의 메인 파일
+/// 
+/// 이 파일은 앱의 진입점이며, 라우팅 설정과 테마 설정을 포함합니다.
+/// Go Router를 사용하여 화면 간 네비게이션을 관리합니다.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'screens/login_screen.dart';
@@ -16,15 +21,20 @@ import 'screens/study_search_screen.dart';
 import 'screens/study_detail_screen.dart';
 import 'screens/user_info_screen.dart';
 
+/// 앱의 진입점
 void main() {
   runApp(const MyApp());
 }
 
+/// 앱의 라우팅 설정
+/// 
+/// 각 화면에 대한 경로와 화면 빌더를 정의합니다.
+/// 초기 경로는 로그인 화면('/login')으로 설정됩니다.
 final _router = GoRouter(
-  initialLocation: '/',
+  initialLocation: '/login',
   routes: [
     GoRoute(
-      path: '/',
+      path: '/login',
       builder: (context, state) => const LoginScreen(),
     ),
     GoRoute(
@@ -57,7 +67,7 @@ final _router = GoRouter(
     ),
     GoRoute(
       path: '/profile',
-      builder: (context, state) => const ProfileScreen(email: 'user@email.com'),
+      builder: (context, state) => const ProfileScreen(),
     ),
     GoRoute(
       path: '/chat',
@@ -74,7 +84,7 @@ final _router = GoRouter(
       builder: (context, state) => const NotificationScreen(),
     ),
     GoRoute(
-      path: '/study/search',
+      path: '/search',
       builder: (context, state) => const StudySearchScreen(),
     ),
     GoRoute(
@@ -93,6 +103,10 @@ final _router = GoRouter(
   ],
 );
 
+/// 앱의 루트 위젯
+/// 
+/// MaterialApp.router를 사용하여 라우팅을 설정하고,
+/// 앱의 테마를 정의합니다.
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -101,12 +115,17 @@ class MyApp extends StatelessWidget {
     return MaterialApp.router(
       title: '스터디 파트너',
       theme: ThemeData(
-        primarySwatch: Colors.orange,
+        primarySwatch: Colors.blue,
         scaffoldBackgroundColor: Colors.white,
         appBarTheme: const AppBarTheme(
           backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
           elevation: 0,
+          iconTheme: IconThemeData(color: Colors.black87),
+          titleTextStyle: TextStyle(
+            color: Colors.black87,
+            fontSize: 20,
+            fontWeight: FontWeight.w600,
+          ),
         ),
       ),
       routerConfig: _router,

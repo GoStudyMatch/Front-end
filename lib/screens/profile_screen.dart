@@ -1,21 +1,33 @@
+/// 프로필 화면
+/// 
+/// 사용자의 프로필 정보를 표시하고 관리하는 화면입니다.
+/// 기본 정보, 보유 기술, 자기소개 등을 표시하며,
+/// 프로필 수정, 알림 설정, 학습 목표 등의 기능을 제공합니다.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'login_screen.dart';
 
+/// 프로필 화면 위젯
 class ProfileScreen extends StatefulWidget {
-  final String email;
+  /// 사용자의 이메일
+  final String? email;
   
   const ProfileScreen({
     super.key,
-    required this.email,
+    this.email,
   });
 
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
 
+/// 프로필 화면의 상태를 관리하는 클래스
 class _ProfileScreenState extends State<ProfileScreen> {
+  /// 스킬 입력 컨트롤러
   final TextEditingController _skillController = TextEditingController();
+  
+  /// 보유 스킬 목록
   List<String> skills = [];
 
   @override
@@ -80,7 +92,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    widget.email,
+                    widget.email ?? '',
                     style: TextStyle(
                       fontSize: 16,
                       color: Colors.grey[600],
@@ -306,11 +318,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         TextButton(
                           onPressed: () {
                             Navigator.of(context).pop();
-                            Navigator.pushNamedAndRemoveUntil(
-                              context,
-                              '/',
-                              (route) => false,
-                            );
+                            context.go('/login');
                           },
                           child: const Text(
                             '로그아웃',
@@ -336,6 +344,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     super.dispose();
   }
 
+  /// 섹션 위젯을 생성하는 메서드
   Widget _buildSection(String title, List<Widget> children) {
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
@@ -359,6 +368,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 정보 항목 위젯을 생성하는 메서드
   Widget _buildInfoItem(IconData icon, String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -386,6 +396,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 스킬 칩 위젯을 생성하는 메서드
   Widget _buildSkillChips(List<String> skills) {
     return Padding(
       padding: const EdgeInsets.all(16.0),
@@ -404,6 +415,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 통계 항목 위젯을 생성하는 메서드
   Widget _buildStatItem(String label, String value) {
     return Column(
       children: [
@@ -426,6 +438,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  /// 메뉴 항목 위젯을 생성하는 메서드
   Widget _buildMenuItem(
     BuildContext context,
     String title,

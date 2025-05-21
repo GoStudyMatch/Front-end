@@ -1,8 +1,15 @@
+/// 회원가입 화면
+/// 
+/// 사용자가 새로운 계정을 생성할 수 있는 화면입니다.
+/// 닉네임, 생년월일, 이메일, 비밀번호 등의 정보를 입력받습니다.
+/// 최종학력과 재학상태를 선택할 수 있으며, 이용약관에 동의해야 합니다.
+
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:go_router/go_router.dart';
 
+/// 회원가입 화면 위젯
 class RegisterScreen extends StatefulWidget {
   const RegisterScreen({super.key});
 
@@ -10,20 +17,45 @@ class RegisterScreen extends StatefulWidget {
   State<RegisterScreen> createState() => _RegisterScreenState();
 }
 
+/// 회원가입 화면의 상태를 관리하는 클래스
 class _RegisterScreenState extends State<RegisterScreen> {
+  /// 폼 검증을 위한 키
   final _formKey = GlobalKey<FormState>();
-  final _nicknameController = TextEditingController();
+  
+  /// 이메일 입력 컨트롤러
   final _emailController = TextEditingController();
+  
+  /// 비밀번호 입력 컨트롤러
   final _passwordController = TextEditingController();
+  
+  /// 비밀번호 확인 입력 컨트롤러
   final _confirmPasswordController = TextEditingController();
+  
+  /// 이름 입력 컨트롤러
+  final _nameController = TextEditingController();
+  
+  /// 닉네임 입력 컨트롤러
+  final _nicknameController = TextEditingController();
+  
+  /// 생년월일
   DateTime? _birthDate;
+  
+  /// 선택된 최종학력
   String? _selectedEducation;
+  
+  /// 선택된 재학상태
   String? _selectedStatus;
-  String? _selectedJobType;
-  bool _isStudent = true;
-  bool _isEmailChecking = false;
-  bool _isEmailAvailable = false;
+  
+  /// 비밀번호 표시 여부
+  bool _isPasswordVisible = false;
+  
+  /// 비밀번호 확인 표시 여부
+  bool _isConfirmPasswordVisible = false;
+  
+  /// 이용약관 동의 여부
+  bool _agreeToTerms = false;
 
+  /// 최종학력 옵션 목록
   final List<String> _educationLevels = [
     '중고등학교',
     '대학교',
@@ -32,54 +64,28 @@ class _RegisterScreenState extends State<RegisterScreen> {
     '프리랜서',
   ];
 
-  final List<String> _studentStatuses = [
+  /// 재학상태 옵션 목록
+  final List<String> _statusOptions = [
     '재학',
     '휴학',
     '졸업',
   ];
 
-  final List<String> _jobTypes = [
-    'IT/개발',
-    '금융',
-    '교육',
-    '의료',
-    '서비스',
-    '제조업',
-    '기타',
-  ];
-
   @override
   void dispose() {
-    _nicknameController.dispose();
     _emailController.dispose();
     _passwordController.dispose();
     _confirmPasswordController.dispose();
+    _nameController.dispose();
+    _nicknameController.dispose();
     super.dispose();
   }
 
-  Future<void> _checkEmailAvailability(String email) async {
-    if (email.isEmpty || !email.contains('@')) return;
-    setState(() {
-      _isEmailChecking = true;
-    });
-    await Future.delayed(const Duration(seconds: 1));
-    // 임시: test가 포함된 이메일은 중복으로 처리
-    final isAvailable = !email.contains('test');
-    setState(() {
-      _isEmailAvailable = isAvailable;
-      _isEmailChecking = false;
-    });
-    if (!isAvailable) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('이미 사용 중인 이메일입니다.')),
-      );
-    }
-  }
-
+  /// 생년월일 선택 다이얼로그를 표시하는 메서드
   Future<void> _selectDate(BuildContext context) async {
     final DateTime? picked = await showDatePicker(
       context: context,
-      initialDate: DateTime(2000),
+      initialDate: DateTime.now().subtract(const Duration(days: 365 * 20)),
       firstDate: DateTime(1900),
       lastDate: DateTime.now(),
     );
@@ -90,239 +96,401 @@ class _RegisterScreenState extends State<RegisterScreen> {
     }
   }
 
-  void _handleKakaoRegister() {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('카카오 회원가입 기능은 준비 중입니다.')),
-    );
-  }
-
-  void _handleSubmit() {
-    if (_formKey.currentState!.validate()) {
-      if (!_isEmailAvailable) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('이메일 중복 확인이 필요합니다.')),
-        );
-        return;
-      }
-      // TODO: 실제 회원가입 처리
-      context.go('/home');
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('회원가입')),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              TextFormField(
-                controller: _nicknameController,
-                decoration: const InputDecoration(
-                  labelText: '닉네임',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '닉네임을 입력해주세요';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              InkWell(
-                onTap: () => _selectDate(context),
-                child: InputDecorator(
-                  decoration: const InputDecoration(
-                    labelText: '생년월일',
-                    border: OutlineInputBorder(),
+      backgroundColor: Colors.white,
+      appBar: AppBar(
+        elevation: 0,
+        backgroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back, color: Colors.black87),
+          onPressed: () => Navigator.pop(context),
+        ),
+        title: const Text(
+          '회원가입',
+          style: TextStyle(
+            color: Colors.black87,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Form(
+              key: _formKey,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  // 닉네임 입력
+                  TextFormField(
+                    controller: _nicknameController,
+                    decoration: InputDecoration(
+                      labelText: '닉네임',
+                      hintText: '닉네임을 입력해주세요',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '닉네임을 입력해주세요';
+                      }
+                      return null;
+                    },
                   ),
-                  child: Text(
-                    _birthDate == null
-                        ? '생년월일을 선택해주세요'
-                        : '${_birthDate!.year}년 ${_birthDate!.month}월 ${_birthDate!.day}일',
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _emailController,
-                decoration: InputDecoration(
-                  labelText: '이메일',
-                  border: const OutlineInputBorder(),
-                  suffixIcon: _isEmailChecking
-                      ? const SizedBox(
-                          width: 20,
-                          height: 20,
-                          child: CircularProgressIndicator(strokeWidth: 2),
-                        )
-                      : IconButton(
-                          icon: Icon(
-                            _isEmailAvailable
-                                ? Icons.check_circle
-                                : Icons.check_circle_outline,
-                            color: _isEmailAvailable ? Colors.green : Colors.grey,
-                          ),
-                          onPressed: () => _checkEmailAvailability(_emailController.text),
+                  const SizedBox(height: 16),
+                  // 생년월일 선택
+                  InkWell(
+                    onTap: () => _selectDate(context),
+                    child: InputDecorator(
+                      decoration: InputDecoration(
+                        labelText: '생년월일',
+                        hintText: '생년월일을 선택해주세요',
+                        prefixIcon: const Icon(Icons.calendar_today),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                ),
-                onChanged: (value) {
-                  setState(() {
-                    _isEmailAvailable = false;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '이메일을 입력해주세요';
-                  }
-                  if (!value.contains('@')) {
-                    return '올바른 이메일 형식이 아닙니다';
-                  }
-                  if (!_isEmailAvailable) {
-                    return '이메일 중복 확인이 필요합니다';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _passwordController,
-                decoration: const InputDecoration(
-                  labelText: '비밀번호',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '비밀번호를 입력해주세요';
-                  }
-                  if (value.length < 6) {
-                    return '비밀번호는 6자 이상이어야 합니다';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _confirmPasswordController,
-                decoration: const InputDecoration(
-                  labelText: '비밀번호 확인',
-                  border: OutlineInputBorder(),
-                ),
-                obscureText: true,
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '비밀번호를 다시 입력해주세요';
-                  }
-                  if (value != _passwordController.text) {
-                    return '비밀번호가 일치하지 않습니다';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedEducation,
-                decoration: const InputDecoration(
-                  labelText: '최종학력',
-                  border: OutlineInputBorder(),
-                ),
-                items: _educationLevels.map((String value) {
-                  return DropdownMenuItem<String>(
-                    value: value,
-                    child: Text(value),
-                  );
-                }).toList(),
-                onChanged: (String? newValue) {
-                  setState(() {
-                    _selectedEducation = newValue;
-                    _isStudent = newValue != '직장인' && newValue != '프리랜서';
-                    _selectedStatus = null;
-                    _selectedJobType = null;
-                  });
-                },
-                validator: (value) {
-                  if (value == null || value.isEmpty) {
-                    return '최종학력을 선택해주세요';
-                  }
-                  return null;
-                },
-              ),
-              const SizedBox(height: 16),
-              if (_isStudent && _selectedEducation != null)
-                DropdownButtonFormField<String>(
-                  value: _selectedStatus,
-                  decoration: const InputDecoration(
-                    labelText: '학적 상태',
-                    border: OutlineInputBorder(),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                      child: Text(
+                        _birthDate == null
+                            ? '생년월일을 선택해주세요'
+                            : '${_birthDate!.year}년 ${_birthDate!.month}월 ${_birthDate!.day}일',
+                        style: TextStyle(
+                          color: _birthDate == null ? Colors.grey[600] : Colors.black87,
+                        ),
+                      ),
+                    ),
                   ),
-                  items: _studentStatuses.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedStatus = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '학적 상태를 선택해주세요';
-                    }
-                    return null;
-                  },
-                ),
-              if (!_isStudent && _selectedEducation != null) ...[
-                const SizedBox(height: 16),
-                DropdownButtonFormField<String>(
-                  value: _selectedJobType,
-                  decoration: const InputDecoration(
-                    labelText: '업종',
-                    border: OutlineInputBorder(),
+                  const SizedBox(height: 16),
+                  // 이메일 입력 필드
+                  TextFormField(
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: InputDecoration(
+                      labelText: '이메일',
+                      hintText: '이메일을 입력하세요',
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '이메일을 입력해주세요';
+                      }
+                      if (!value.contains('@')) {
+                        return '올바른 이메일 형식이 아닙니다';
+                      }
+                      return null;
+                    },
                   ),
-                  items: _jobTypes.map((String value) {
-                    return DropdownMenuItem<String>(
-                      value: value,
-                      child: Text(value),
-                    );
-                  }).toList(),
-                  onChanged: (String? newValue) {
-                    setState(() {
-                      _selectedJobType = newValue;
-                    });
-                  },
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return '업종을 선택해주세요';
-                    }
-                    return null;
-                  },
-                ),
-              ],
-              const SizedBox(height: 24),
-              ElevatedButton(
-                onPressed: _handleSubmit,
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-                child: const Text('회원가입'),
+                  const SizedBox(height: 16),
+                  // 이름 입력 필드
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: InputDecoration(
+                      labelText: '이름',
+                      hintText: '이름을 입력하세요',
+                      prefixIcon: const Icon(Icons.person_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '이름을 입력해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 비밀번호 입력 필드
+                  TextFormField(
+                    controller: _passwordController,
+                    obscureText: !_isPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: '비밀번호',
+                      hintText: '비밀번호를 입력하세요',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isPasswordVisible = !_isPasswordVisible;
+                          });
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '비밀번호를 입력해주세요';
+                      }
+                      if (value.length < 6) {
+                        return '비밀번호는 6자 이상이어야 합니다';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 비밀번호 확인 입력 필드
+                  TextFormField(
+                    controller: _confirmPasswordController,
+                    obscureText: !_isConfirmPasswordVisible,
+                    decoration: InputDecoration(
+                      labelText: '비밀번호 확인',
+                      hintText: '비밀번호를 다시 입력하세요',
+                      prefixIcon: const Icon(Icons.lock_outline),
+                      suffixIcon: IconButton(
+                        icon: Icon(
+                          _isConfirmPasswordVisible
+                              ? Icons.visibility_off
+                              : Icons.visibility,
+                          color: Colors.grey[600],
+                        ),
+                        onPressed: () {
+                          setState(() {
+                            _isConfirmPasswordVisible = !_isConfirmPasswordVisible;
+                          });
+                        },
+                      ),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                      filled: true,
+                      fillColor: Colors.grey[50],
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '비밀번호를 다시 입력해주세요';
+                      }
+                      if (value != _passwordController.text) {
+                        return '비밀번호가 일치하지 않습니다';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 최종학력 선택
+                  DropdownButtonFormField<String>(
+                    value: _selectedEducation,
+                    decoration: InputDecoration(
+                      labelText: '최종학력',
+                      hintText: '최종학력을 선택해주세요',
+                      prefixIcon: const Icon(Icons.school),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    items: _educationLevels.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedEducation = newValue;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '최종학력을 선택해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  // 재학상태 선택
+                  DropdownButtonFormField<String>(
+                    value: _selectedStatus,
+                    decoration: InputDecoration(
+                      labelText: '재학상태',
+                      hintText: '재학상태를 선택해주세요',
+                      prefixIcon: const Icon(Icons.work_outline),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      enabledBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: const BorderSide(color: Colors.blue),
+                      ),
+                    ),
+                    items: _statusOptions.map((String value) {
+                      return DropdownMenuItem<String>(
+                        value: value,
+                        child: Text(value),
+                      );
+                    }).toList(),
+                    onChanged: (String? newValue) {
+                      setState(() {
+                        _selectedStatus = newValue;
+                      });
+                    },
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '재학상태를 선택해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 24),
+                  // 이용약관 동의
+                  Row(
+                    children: [
+                      Checkbox(
+                        value: _agreeToTerms,
+                        onChanged: (value) {
+                          setState(() {
+                            _agreeToTerms = value ?? false;
+                          });
+                        },
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(4),
+                        ),
+                      ),
+                      Expanded(
+                        child: GestureDetector(
+                          onTap: () {
+                            setState(() {
+                              _agreeToTerms = !_agreeToTerms;
+                            });
+                          },
+                          child: Text(
+                            '이용약관 및 개인정보 처리방침에 동의합니다',
+                            style: TextStyle(
+                              color: Colors.grey[800],
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+                  // 회원가입 버튼
+                  ElevatedButton(
+                    onPressed: _agreeToTerms
+                        ? () {
+                            if (_formKey.currentState!.validate()) {
+                              context.go('/home');
+                            }
+                          }
+                        : null,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 0,
+                    ),
+                    child: const Text(
+                      '회원가입',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  // 로그인 페이지로 이동
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: Text(
+                      '이미 계정이 있으신가요? 로그인',
+                      style: TextStyle(
+                        color: Colors.grey[600],
+                        fontSize: 14,
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              const SizedBox(height: 16),
-              OutlinedButton.icon(
-                onPressed: _handleKakaoRegister,
-                icon: const Icon(Icons.chat_bubble_outline, color: Colors.yellow),
-                label: const Text('카카오로 회원가입'),
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
