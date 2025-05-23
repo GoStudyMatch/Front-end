@@ -237,10 +237,33 @@ class _LoginScreenState extends State<LoginScreen> {
                         onPressed: () {},
                       ),
                       const SizedBox(width: 16),
-                      _buildSocialButton(
-                        icon: Icons.facebook,
-                        color: Colors.blue[800]!,
-                        onPressed: () {},
+                      Container(
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(12),
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.grey.withOpacity(0.1),
+                              spreadRadius: 1,
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: IconButton(
+                          onPressed: () {},
+                          icon: Image.asset(
+                            'assets/icons/kakao.png',
+                            width: 32,
+                            height: 32,
+                          ),
+                          style: IconButton.styleFrom(
+                            padding: const EdgeInsets.all(12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(width: 16),
                       _buildSocialButton(

@@ -30,6 +30,17 @@ class _ProfileScreenState extends State<ProfileScreen> {
   /// 보유 스킬 목록
   List<String> skills = [];
 
+  /// 자기소개 텍스트
+  String _bio = '안녕하세요! 저는 웹 개발과 모바일 앱 개발에 관심이 있는 학생입니다. 함께 성장하고 배우는 스터디를 찾고 있습니다.';
+  bool _isEditingBio = false;
+  final TextEditingController _bioController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    _bioController.text = _bio;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -205,14 +216,41 @@ class _ProfileScreenState extends State<ProfileScreen> {
               [
                 Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    '안녕하세요! 저는 웹 개발과 모바일 앱 개발에 관심이 있는 학생입니다. '
-                    '함께 성장하고 배우는 스터디를 찾고 있습니다.',
-                    style: TextStyle(
-                      fontSize: 16,
-                      color: Colors.grey[800],
-                      height: 1.5,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (_isEditingBio)
+                            Expanded(
+                              child: TextField(
+                                controller: _bioController,
+                                maxLines: 3,
+                                decoration: const InputDecoration(
+                                  hintText: '자기소개를 입력하세요',
+                                  border: OutlineInputBorder(),
+                                ),
+                              ),
+                            )
+                          else
+                            Expanded(
+                              child: Text(
+                                _bio,
+                                style: TextStyle(
+                                  fontSize: 16,
+                                  color: Colors.grey[800],
+                                  height: 1.5,
+                                ),
+                              ),
+                            ),
+                          IconButton(
+                            icon: Icon(_isEditingBio ? Icons.check : Icons.edit),
+                            onPressed: _isEditingBio ? _saveBio : _toggleBioEdit,
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
               ],
@@ -341,7 +379,27 @@ class _ProfileScreenState extends State<ProfileScreen> {
   @override
   void dispose() {
     _skillController.dispose();
+    _bioController.dispose();
     super.dispose();
+  }
+
+  void _toggleBioEdit() {
+    setState(() {
+      _isEditingBio = !_isEditingBio;
+      if (!_isEditingBio) {
+        _bioController.text = _bio;
+      }
+    });
+  }
+
+  void _saveBio() {
+    setState(() {
+      _bio = _bioController.text;
+      _isEditingBio = false;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('자기소개가 수정되었습니다.')),
+    );
   }
 
   /// 섹션 위젯을 생성하는 메서드

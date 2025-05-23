@@ -1,3 +1,8 @@
+/// 홈 화면
+/// 
+/// 사용자의 스터디 목록과 추천 스터디를 표시하는 메인 화면입니다.
+/// 우측 하단의 만들기 버튼을 통해 새로운 스터디를 생성할 수 있습니다.
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'profile_screen.dart';
@@ -7,6 +12,7 @@ import 'study_search_screen.dart';
 import 'chat_screen.dart';
 import 'notification_screen.dart';
 
+/// 홈 화면 위젯
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -158,10 +164,195 @@ class _HomeScreenState extends State<HomeScreen> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          context.push('/study/create');
+          _showCreateStudyDialog(context);
         },
         backgroundColor: Colors.blue,
         child: const Icon(Icons.add),
+      ),
+    );
+  }
+
+  void _showCreateStudyDialog(BuildContext context) {
+    final _formKey = GlobalKey<FormState>();
+    final _nameController = TextEditingController();
+    final _descriptionController = TextEditingController();
+    final _scheduleController = TextEditingController();
+    final _maxMembersController = TextEditingController();
+    final _topicsController = TextEditingController();
+    bool _isPublic = true;
+    DateTime? _acceptanceDeadline;
+    int _maxMembers = 10;
+
+    showDialog(
+      context: context,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: const Text('새 스터디 만들기'),
+          content: SingleChildScrollView(
+            child: Form(
+              key: _formKey,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  TextFormField(
+                    controller: _nameController,
+                    decoration: const InputDecoration(
+                      labelText: '스터디 이름',
+                      hintText: '스터디 이름을 입력하세요',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '스터디 이름을 입력해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _descriptionController,
+                    decoration: const InputDecoration(
+                      labelText: '스터디 설명',
+                      hintText: '스터디에 대한 설명을 입력하세요',
+                    ),
+                    maxLines: 3,
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '스터디 설명을 입력해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  TextFormField(
+                    controller: _scheduleController,
+                    decoration: const InputDecoration(
+                      labelText: '스터디 일정',
+                      hintText: '예) 매주 월, 수, 금 19:00',
+                    ),
+                    validator: (value) {
+                      if (value == null || value.isEmpty) {
+                        return '스터디 일정을 입력해주세요';
+                      }
+                      return null;
+                    },
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: _maxMembersController,
+                          decoration: const InputDecoration(
+                            labelText: '최대 인원',
+                            hintText: '최대 인원 수',
+                          ),
+                          keyboardType: TextInputType.number,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return '최대 인원을 입력해주세요';
+                            }
+                            final number = int.tryParse(value);
+                            if (number == null || number < 2) {
+                              return '2명 이상 입력해주세요';
+                            }
+                            return null;
+                          },
+                          onChanged: (value) {
+                            if (value.isNotEmpty) {
+                              setState(() {
+                                _maxMembers = int.parse(value);
+                              });
+                            }
+                          },
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: TextFormField(
+                          decoration: const InputDecoration(
+                            labelText: '관련 기술/주제',
+                            hintText: '예) Flutter, iOS',
+                          ),
+                          controller: _topicsController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return '관련 기술/주제를 입력해주세요';
+                            }
+                            return null;
+                          },
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text('공개 여부:'),
+                      const SizedBox(width: 16),
+                      Switch(
+                        value: _isPublic,
+                        onChanged: (value) {
+                          setState(() {
+                            _isPublic = value;
+                          });
+                        },
+                      ),
+                      Text(_isPublic ? '공개' : '비공개'),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    children: [
+                      const Text('수용 마감일:'),
+                      const SizedBox(width: 16),
+                      TextButton(
+                        onPressed: () async {
+                          final date = await showDatePicker(
+                            context: context,
+                            initialDate: DateTime.now().add(const Duration(days: 7)),
+                            firstDate: DateTime.now(),
+                            lastDate: DateTime.now().add(const Duration(days: 365)),
+                          );
+                          if (date != null) {
+                            setState(() {
+                              _acceptanceDeadline = date;
+                            });
+                          }
+                        },
+                        child: Text(
+                          _acceptanceDeadline != null
+                              ? '${_acceptanceDeadline!.year}년 ${_acceptanceDeadline!.month}월 ${_acceptanceDeadline!.day}일'
+                              : '날짜 선택',
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('취소'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (_formKey.currentState!.validate()) {
+                  // TODO: 스터디 생성 로직 구현
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('스터디가 생성되었습니다.'),
+                    ),
+                  );
+                  Navigator.pop(context);
+                }
+              },
+              child: const Text('만들기'),
+            ),
+          ],
+        ),
       ),
     );
   }

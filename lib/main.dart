@@ -11,7 +11,6 @@ import 'screens/home_screen.dart';
 import 'screens/profile_edit_screen.dart';
 import 'screens/notification_settings_screen.dart';
 import 'screens/map_screen.dart';
-import 'screens/todo_screen.dart';
 import 'screens/follow_screen.dart';
 import 'screens/profile_screen.dart';
 import 'screens/chat_screen.dart';
@@ -31,19 +30,47 @@ void main() {
 /// 각 화면에 대한 경로와 화면 빌더를 정의합니다.
 /// 초기 경로는 로그인 화면('/login')으로 설정됩니다.
 final _router = GoRouter(
-  initialLocation: '/login',
+  initialLocation: '/',
   routes: [
     GoRoute(
-      path: '/login',
+      path: '/',
       builder: (context, state) => const LoginScreen(),
-    ),
-    GoRoute(
-      path: '/register',
-      builder: (context, state) => const RegisterScreen(),
     ),
     GoRoute(
       path: '/home',
       builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/search',
+      builder: (context, state) => const StudySearchScreen(),
+    ),
+    GoRoute(
+      path: '/chat',
+      builder: (context, state) => const ChatScreen(),
+    ),
+    GoRoute(
+      path: '/notification',
+      builder: (context, state) => const NotificationScreen(),
+    ),
+    GoRoute(
+      path: '/profile',
+      builder: (context, state) => const ProfileScreen(),
+    ),
+    GoRoute(
+      path: '/chat/study/:id',
+      builder: (context, state) => ChatRoomScreen(
+        roomId: state.pathParameters['id']!,
+        type: 'study',
+        title: '스터디 채팅방',
+      ),
+    ),
+    GoRoute(
+      path: '/chat/personal/:id',
+      builder: (context, state) => ChatRoomScreen(
+        roomId: state.pathParameters['id']!,
+        type: 'personal',
+        title: '개인 채팅방',
+      ),
     ),
     GoRoute(
       path: '/profile/edit',
@@ -58,34 +85,8 @@ final _router = GoRouter(
       builder: (context, state) => const MapScreen(),
     ),
     GoRoute(
-      path: '/todo',
-      builder: (context, state) => const TodoScreen(),
-    ),
-    GoRoute(
       path: '/follow',
       builder: (context, state) => const FollowScreen(),
-    ),
-    GoRoute(
-      path: '/profile',
-      builder: (context, state) => const ProfileScreen(),
-    ),
-    GoRoute(
-      path: '/chat',
-      builder: (context, state) => const ChatScreen(),
-    ),
-    GoRoute(
-      path: '/chat/:roomId',
-      builder: (context, state) => ChatRoomScreen(
-        roomId: state.pathParameters['roomId']!,
-      ),
-    ),
-    GoRoute(
-      path: '/notifications',
-      builder: (context, state) => const NotificationScreen(),
-    ),
-    GoRoute(
-      path: '/search',
-      builder: (context, state) => const StudySearchScreen(),
     ),
     GoRoute(
       path: '/study/detail/:id',
@@ -101,6 +102,11 @@ final _router = GoRouter(
       builder: (context, state) => const UserInfoScreen(),
     ),
   ],
+  errorBuilder: (context, state) => Scaffold(
+    body: Center(
+      child: Text('페이지를 찾을 수 없습니다: ${state.uri.path}'),
+    ),
+  ),
 );
 
 /// 앱의 루트 위젯
