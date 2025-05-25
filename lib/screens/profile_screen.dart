@@ -35,6 +35,30 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _isEditingBio = false;
   final TextEditingController _bioController = TextEditingController();
 
+  /// 직업
+  String _occupation = '학생';
+  
+  /// 최종학력
+  String _education = '대학교';
+  
+  /// 재학상태
+  String _educationStatus = '재학중';
+
+  /// 직업별 최종학력 상태 옵션
+  Map<String, List<String>> _educationStatusOptions = {
+    '학생': ['재학중', '휴학중', '졸업'],
+    '직장인': ['재직중', '이직준비중', '퇴사'],
+    '프리랜서': ['활동중', '휴식중', '종료'],
+  };
+
+  /// 학력별 상태 옵션
+  Map<String, List<String>> _educationLevelStatusOptions = {
+    '중학교': ['재학중', '졸업'],
+    '고등학교': ['재학중', '졸업'],
+    '대학교': ['재학중', '휴학중', '졸업'],
+    '대학원': ['재학중', '휴학중', '졸업'],
+  };
+
   @override
   void initState() {
     super.initState();
@@ -154,9 +178,161 @@ class _ProfileScreenState extends State<ProfileScreen> {
             _buildSection(
               '기본 정보',
               [
-                _buildInfoItem(Icons.school, '최종학력', '대학교 재학중'),
-                _buildInfoItem(Icons.location_on, '거주지역', '서울시 강남구'),
-                _buildInfoItem(Icons.work, '직업', '학생'),
+                _buildInfoItem(
+                  Icons.school,
+                  '최종학력',
+                  '$_education $_educationStatus',
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('최종학력 선택'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              title: const Text('중학교'),
+                              onTap: () {
+                                setState(() {
+                                  _education = '중학교';
+                                  _educationStatus = _educationLevelStatusOptions['중학교']![0];
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('고등학교'),
+                              onTap: () {
+                                setState(() {
+                                  _education = '고등학교';
+                                  _educationStatus = _educationLevelStatusOptions['고등학교']![0];
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('대학교'),
+                              onTap: () {
+                                setState(() {
+                                  _education = '대학교';
+                                  _educationStatus = _educationLevelStatusOptions['대학교']![0];
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('대학원'),
+                              onTap: () {
+                                setState(() {
+                                  _education = '대학원';
+                                  _educationStatus = _educationLevelStatusOptions['대학원']![0];
+                                });
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _buildInfoItem(
+                  Icons.school,
+                  '학적상태',
+                  _educationStatus,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('학적상태 선택'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: _educationLevelStatusOptions[_education]!
+                              .map((status) => ListTile(
+                                    title: Text(status),
+                                    onTap: () {
+                                      setState(() {
+                                        _educationStatus = status;
+                                      });
+                                      Navigator.pop(context);
+                                    },
+                                  ))
+                              .toList(),
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                _buildInfoItem(
+                  Icons.location_on,
+                  '거주지역',
+                  '서울시 강남구',
+                ),
+                _buildInfoItem(
+                  Icons.work,
+                  '직업',
+                  _occupation,
+                  onTap: () {
+                    showDialog(
+                      context: context,
+                      builder: (context) => AlertDialog(
+                        title: const Text('직업 선택'),
+                        content: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            ListTile(
+                              title: const Text('학생'),
+                              onTap: () {
+                                _changeOccupation('학생');
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('직장인'),
+                              onTap: () {
+                                _changeOccupation('직장인');
+                                Navigator.pop(context);
+                              },
+                            ),
+                            ListTile(
+                              title: const Text('프리랜서'),
+                              onTap: () {
+                                _changeOccupation('프리랜서');
+                                Navigator.pop(context);
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
+                ),
+                if (_occupation != '학생')
+                  _buildInfoItem(
+                    Icons.business,
+                    '상태',
+                    _educationStatus,
+                    onTap: () {
+                      showDialog(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('상태 선택'),
+                          content: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: _educationStatusOptions[_occupation]!
+                                .map((status) => ListTile(
+                                      title: Text(status),
+                                      onTap: () {
+                                        _changeEducationStatus(status);
+                                        Navigator.pop(context);
+                                      },
+                                    ))
+                                .toList(),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
               ],
             ),
             // 보유 기술 섹션
@@ -402,6 +578,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
     );
   }
 
+  void _changeOccupation(String occupation) {
+    setState(() {
+      _occupation = occupation;
+      _educationStatus = _educationStatusOptions[occupation]![0];
+    });
+  }
+
+  void _changeEducationStatus(String status) {
+    setState(() {
+      _educationStatus = status;
+    });
+  }
+
   /// 섹션 위젯을 생성하는 메서드
   Widget _buildSection(String title, List<Widget> children) {
     return Container(
@@ -427,29 +616,39 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }
 
   /// 정보 항목 위젯을 생성하는 메서드
-  Widget _buildInfoItem(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Row(
-        children: [
-          Icon(icon, color: Colors.grey[600], size: 20),
-          const SizedBox(width: 16),
-          Text(
-            label,
-            style: TextStyle(
-              fontSize: 16,
-              color: Colors.grey[600],
+  Widget _buildInfoItem(IconData icon, String label, String value, {VoidCallback? onTap}) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.grey[600], size: 20),
+            const SizedBox(width: 16),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.grey[600],
+              ),
             ),
-          ),
-          const SizedBox(width: 16),
-          Text(
-            value,
-            style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.w500,
+            const SizedBox(width: 16),
+            Expanded(
+              child: Text(
+                value,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
             ),
-          ),
-        ],
+            if (onTap != null)
+              Icon(
+                Icons.chevron_right,
+                color: Colors.grey[400],
+              ),
+          ],
+        ),
       ),
     );
   }

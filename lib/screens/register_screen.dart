@@ -40,11 +40,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
   /// 생년월일
   DateTime? _birthDate;
   
+  /// 선택된 직업
+  String _selectedOccupation = '학생';
+  
   /// 선택된 최종학력
-  String? _selectedEducation;
+  String _selectedEducation = '대학교';
   
   /// 선택된 재학상태
-  String? _selectedStatus;
+  String _selectedStatus = '재학중';
   
   /// 비밀번호 표시 여부
   bool _isPasswordVisible = false;
@@ -70,6 +73,21 @@ class _RegisterScreenState extends State<RegisterScreen> {
     '휴학',
     '졸업',
   ];
+
+  /// 학력별 상태 옵션
+  final Map<String, List<String>> _educationLevelStatusOptions = {
+    '중학교': ['재학중', '졸업'],
+    '고등학교': ['재학중', '졸업'],
+    '대학교': ['재학중', '휴학중', '졸업'],
+    '대학원': ['재학중', '휴학중', '졸업'],
+  };
+
+  /// 직업별 상태 옵션
+  final Map<String, List<String>> _occupationStatusOptions = {
+    '학생': ['재학중', '휴학중', '졸업'],
+    '직장인': ['재직중', '이직준비중', '퇴사'],
+    '프리랜서': ['활동중', '휴식중', '종료'],
+  };
 
   @override
   void dispose() {
@@ -341,50 +359,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     },
                   ),
                   const SizedBox(height: 16),
-                  // 최종학력 선택
+                  // 직업 선택
                   DropdownButtonFormField<String>(
-                    value: _selectedEducation,
+                    value: _selectedOccupation,
                     decoration: InputDecoration(
-                      labelText: '최종학력',
-                      hintText: '최종학력을 선택해주세요',
-                      prefixIcon: const Icon(Icons.school),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      enabledBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.grey[300]!),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: const BorderSide(color: Colors.blue),
-                      ),
-                    ),
-                    items: _educationLevels.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedEducation = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '최종학력을 선택해주세요';
-                      }
-                      return null;
-                    },
-                  ),
-                  const SizedBox(height: 16),
-                  // 재학상태 선택
-                  DropdownButtonFormField<String>(
-                    value: _selectedStatus,
-                    decoration: InputDecoration(
-                      labelText: '재학상태',
-                      hintText: '재학상태를 선택해주세요',
+                      labelText: '직업',
+                      hintText: '직업을 선택해주세요',
                       prefixIcon: const Icon(Icons.work_outline),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
@@ -398,24 +378,127 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         borderSide: const BorderSide(color: Colors.blue),
                       ),
                     ),
-                    items: _statusOptions.map((String value) {
-                      return DropdownMenuItem<String>(
-                        value: value,
-                        child: Text(value),
-                      );
-                    }).toList(),
-                    onChanged: (String? newValue) {
-                      setState(() {
-                        _selectedStatus = newValue;
-                      });
-                    },
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return '재학상태를 선택해주세요';
+                    items: const [
+                      DropdownMenuItem(value: '학생', child: Text('학생')),
+                      DropdownMenuItem(value: '직장인', child: Text('직장인')),
+                      DropdownMenuItem(value: '프리랜서', child: Text('프리랜서')),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) {
+                        setState(() {
+                          _selectedOccupation = value;
+                          if (value == '학생') {
+                            _selectedEducation = '대학교';
+                            _selectedStatus = _educationLevelStatusOptions[_selectedEducation]![0];
+                          } else {
+                            _selectedStatus = _occupationStatusOptions[value]![0];
+                          }
+                        });
                       }
-                      return null;
                     },
                   ),
+                  const SizedBox(height: 16),
+                  // 최종학력 및 상태 선택
+                  if (_selectedOccupation == '학생') ...[
+                    DropdownButtonFormField<String>(
+                      value: _selectedEducation,
+                      decoration: InputDecoration(
+                        labelText: '최종학력',
+                        hintText: '최종학력을 선택해주세요',
+                        prefixIcon: const Icon(Icons.school),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                      items: const [
+                        DropdownMenuItem(value: '중학교', child: Text('중학교')),
+                        DropdownMenuItem(value: '고등학교', child: Text('고등학교')),
+                        DropdownMenuItem(value: '대학교', child: Text('대학교')),
+                        DropdownMenuItem(value: '대학원', child: Text('대학원')),
+                      ],
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedEducation = value;
+                            _selectedStatus = _educationLevelStatusOptions[value]![0];
+                          });
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    DropdownButtonFormField<String>(
+                      value: _selectedStatus,
+                      decoration: InputDecoration(
+                        labelText: '학적상태',
+                        hintText: '학적상태를 선택해주세요',
+                        prefixIcon: const Icon(Icons.school),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                      items: _educationLevelStatusOptions[_selectedEducation]!
+                          .map((status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedStatus = value;
+                          });
+                        }
+                      },
+                    ),
+                  ] else
+                    DropdownButtonFormField<String>(
+                      value: _selectedStatus,
+                      decoration: InputDecoration(
+                        labelText: '상태',
+                        hintText: '상태를 선택해주세요',
+                        prefixIcon: const Icon(Icons.work_outline),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        enabledBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(color: Colors.grey[300]!),
+                        ),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: const BorderSide(color: Colors.blue),
+                        ),
+                      ),
+                      items: _occupationStatusOptions[_selectedOccupation]!
+                          .map((status) => DropdownMenuItem(
+                                value: status,
+                                child: Text(status),
+                              ))
+                          .toList(),
+                      onChanged: (value) {
+                        if (value != null) {
+                          setState(() {
+                            _selectedStatus = value;
+                          });
+                        }
+                      },
+                    ),
                   const SizedBox(height: 24),
                   // 이용약관 동의
                   Row(
