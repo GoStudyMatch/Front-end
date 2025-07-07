@@ -1,8 +1,11 @@
 # 스터디 파트너 앱
 
 스터디 파트너 앱은 사용자들이 스터디 그룹을 찾고 관리할 수 있는 플랫폼입니다.
----
-<img src="Figma.png" width="400" />
+
+<div align="center">
+  <img src="Figma.png" width="400" alt="스터디 파트너 앱 디자인 미리보기" />
+</div>
+
 ---
 
 ## 프로젝트 구조
